@@ -114,7 +114,7 @@ def send_email(
 ) -> None:
     msg = MIMEMultipart("alternative")
     msg["From"] = sender
-    msg["To"] = ", ".join(recipients)
+    msg["To"] = sender
     msg["Subject"] = subject
     msg.attach(MIMEText(html_body, "html"))
 
