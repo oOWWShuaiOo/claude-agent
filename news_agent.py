@@ -108,20 +108,20 @@ def briefing_to_html(briefing: str, date_str: str) -> str:
 def send_email(
     sender: str,
     app_password: str,
-    recipient: str,
+    recipients: list[str],
     subject: str,
     html_body: str,
 ) -> None:
     msg = MIMEMultipart("alternative")
     msg["From"] = sender
-    msg["To"] = recipient
+    msg["To"] = ", ".join(recipients)
     msg["Subject"] = subject
     msg.attach(MIMEText(html_body, "html"))
 
     with smtplib.SMTP("smtp.gmail.com", 587) as server:
         server.starttls()
         server.login(sender, app_password)
-        server.sendmail(sender, recipient, msg.as_string())
+        server.sendmail(sender, recipients, msg.as_string())
 
 
 async def fetch_briefing() -> str:
@@ -156,14 +156,17 @@ async def main() -> None:
         html = briefing_to_html(briefing, today)
         subject = f"Daily News Briefing - {today}"
 
+        recipients = [
+            r.strip() for r in config["RECIPIENT_EMAIL"].split(",")
+        ]
         send_email(
             sender=config["GMAIL_ADDRESS"],
             app_password=config["GMAIL_APP_PASSWORD"],
-            recipient=config["RECIPIENT_EMAIL"],
+            recipients=recipients,
             subject=subject,
             html_body=html,
         )
-        log.info("Briefing sent successfully to %s", config["RECIPIENT_EMAIL"])
+        log.info("Briefing sent successfully to %s", ", ".join(recipients))
     except Exception:
         log.exception("Failed to send briefing")
         raise
